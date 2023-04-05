@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -19,12 +19,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatAppSimple"
         tools:targetApi="31">
-        <service android:name=".notification.MyFirebaseMessagingService"
+        <service android:name=".firebase.FirebaseService"
+            android:permission="com.google.android.c2dm.permission.SEND"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
+
         </service>
+        <receiver
+            android:name=".notification.MyFirebaseMessagingReceiver"
+            android:exported="false"
+            >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="${applicationId}" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true">

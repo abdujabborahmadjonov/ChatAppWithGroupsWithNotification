@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#647BFD"
+    tools:context=".fragments.groupChat.AddGroupFragment">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Group"
+        android:textSize="25sp"
+        android:layout_margin="30dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:textStyle="bold"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:layout_gravity="center"
+        android:textColor="#303B4F" />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content">
+
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:src="@drawable/img_circle"
+            android:contentDescription="ImageView" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@id/image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/roundedImageViewRounded"
+            android:layout_gravity="center"
+            android:padding="8dp"
+             />
+
+        <ImageView
+            android:id="@+id/btn_add"
+            android:layout_width="30dp"
+            android:layout_height="34dp"
+            android:scaleType="centerCrop"
+            android:layout_gravity="bottom|end"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/img_round_plus"
+            android:contentDescription="plus" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layout_name"
+        android:layout_marginTop="20dp"
+        style="@style/TextInputLayoutStyle"
+        android:layout_width="match_parent"
+        app:endIconTint="#E53935"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_marginBottom="10dp"
+        android:hint="Group Name"
+        app:endIconMode="clear_text"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        app:hintTextColor="#E53935"
+        app:helperTextTextColor="#E53935">
+
+        <EditText
+            android:id="@+id/edt_name"
+            android:inputType="textPersonName"
+            android:textColor="#01508E"
+            android:paddingEnd="40dp"
+            android:autofillHints="name"
+            android:layout_marginBottom="5dp"
+            android:layout_width="match_parent"
+            android:importantForAutofill="no"
+            android:layout_height="match_parent"
+            tools:ignore="LabelFor,RtlSymmetry" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:id="@+id/layout_surname"
+        style="@style/TextInputLayoutStyle"
+        app:endIconTint="#E53935"
+        android:layout_height="?attr/actionBarSize"
+        android:hint="Havola"
+        app:endIconMode="clear_text"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        app:hintTextColor="#E53935"
+        android:layout_marginBottom="10dp"
+        app:helperTextTextColor="#E53935">
+
+        <EditText
+            android:id="@+id/edt_familya"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#006FC8"
+            android:paddingEnd="40dp"
+            android:inputType="text"
+            android:autofillHints="emailAddress"
+            tools:ignore="LabelFor,RtlSymmetry" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_sign_up"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:layout_marginTop="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:layout_gravity="center"
+        android:background="@drawable/btn_back"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:text="Add new group" />
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

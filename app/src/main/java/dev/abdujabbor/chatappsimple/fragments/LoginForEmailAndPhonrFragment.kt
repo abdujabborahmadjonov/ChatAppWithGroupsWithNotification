@@ -64,7 +64,7 @@ class LoginForEmailAndPhonrFragment : Fragment() {
         val key = dataRef.push().key
         for (i in userlist) {
             if (i.displayName != name && photourl != "null") {
-                val person = MyPerson(uid, photourl, name)
+                val person = MyPerson(uid, photourl, name,"online")
                 dataRef.child(key!!).setValue(person)
                 break
             }

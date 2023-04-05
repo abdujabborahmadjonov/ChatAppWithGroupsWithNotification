@@ -10,10 +10,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.*
 import com.google.firebase.database.*
@@ -45,198 +47,97 @@ class AuthMainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail().build()
+
+        val googleSigningClient = GoogleSignIn.getClient(requireActivity(), gso)
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
         dataRef = database.getReference("akkauntlar")
 
+
+
+
+
         if (auth.currentUser != null) {
-            findNavController().navigate(R.id.allUsersFragment)
+            MyData.USER = MyPerson(
+                auth.uid,
+                auth.currentUser?.photoUrl.toString(),
+                auth.currentUser?.displayName,"online"
+            )
+
+            findNavController().navigate(
+                R.id.allUsersFragment,
+                null,
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().currentDestination?.id ?: 0, true).build()
+            )
+
+
         }
-        binding.loginWithemail.setOnClickListener {
-            loginregisteremail()
-        }
-        loadData()
-        binding.loginBtn.setOnClickListener {
-            login()
-        }
+
         binding.signingoogel.setOnClickListener {
-            val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-            val signInClient = GoogleSignIn.getClient(requireActivity(), options)
-            signInClient.signInIntent.also {
-                startActivityForResult(it, 0)
-            }
-
+            startActivityForResult(googleSigningClient.signInIntent, 1)
         }
-        callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
-            override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                findNavController().navigate(R.id.allUsersFragment)
-            }
 
-            override fun onVerificationFailed(e: FirebaseException) {
-                Toast.makeText(requireContext(), "Failed", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onCodeSent(
-                verificationId: String,
-                token: PhoneAuthProvider.ForceResendingToken
-            ) {
-
-                Log.d("TAG", "onCodeSent:$verificationId")
-                storedVerificationId = verificationId
-                resendToken = token
-
-                MyData.storedVerificationId = storedVerificationId
-                findNavController().navigate(R.id.phoneVerifyFragment)
-            }
-        }
 
         return binding.root
     }
-
-    @SuppressLint("SuspiciousIndentation")
-    private fun googleAuthForFirebase(account: GoogleSignInAccount) {
-        val credentials = GoogleAuthProvider.getCredential(account.idToken, null)
-        try {
-            auth.signInWithCredential(credentials)
-            Toast.makeText(requireContext(), "Successfully logged in", Toast.LENGTH_LONG)
-                .show()
-            add()
-
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG).show()
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 0) {
-            val account = GoogleSignIn.getSignedInAccountFromIntent(data).result
-            account?.let {
-                googleAuthForFirebase(it)
-            }
-        }
-    }
 
-    fun add()= CoroutineScope(Dispatchers.IO).launch {
-        val name = auth.currentUser?.displayName.toString()
-        val photourl = auth.currentUser?.photoUrl.toString()
-        val uid = auth.uid
-        val key = dataRef.push().key
-        for (i in userlist) {
-            if (i.displayName != name && photourl != "null") {
-                val person = MyPerson(uid, photourl, name)
-                dataRef.child(key!!).setValue(person).await()
-                break
+        if (requestCode == 1) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+
+            try {
+                val account = task.getResult(ApiException::class.java)
+                Log.d("TAG", "onActivityResult: ${account.displayName}")
+                fireBaseAuthWithGoogle(account.idToken)
+
+            } catch (e: Exception) {
+                Log.d("TAG", "onActivityResult: FAILURE ${e.toString()}")
             }
+
         }
 
-
     }
 
-    private fun login() {
-        var number = binding.phoneNumber.text.toString()
-        if (!number.isEmpty()) {
-            number = "+998$number"
-            sendVerificationcode(number)
-        } else {
-            Toast.makeText(requireContext(), "Enter mobile number", Toast.LENGTH_SHORT).show()
-        }
-    }
+    private fun fireBaseAuthWithGoogle(idToken: String?) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential).addOnCompleteListener {
+            if (it.isSuccessful) {
+                Log.d("TAG", "fireBaseAuthWithGoogle: Sign in with credential SUCCESSFUL")
+                val user = auth.currentUser
+                dataRef.child(auth.uid!!)
+                    .setValue(
+                        MyPerson(
+                            auth.uid,
+                            user?.photoUrl.toString(),
 
-    private fun sendVerificationcode(number: String) {
-        val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(number) // Phone number to verify
-            .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
-            .setActivity(requireActivity()) // Activity (for callback binding)
-            .setCallbacks(callbacks) // OnVerificationStateChangedCallbacks
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
+                            user?.displayName,"online"
+                        )
+                    )
+//                Toast.makeText(context, "${user?.displayName}", Toast.LENGTH_SHORT).show()
+                MyData.USER = MyPerson(
+                    auth.uid,  user?.photoUrl.toString(),user?.displayName,"online"
+                )
+                findNavController().navigate(
+                    R.id.allUsersFragment,
+                    null,
+                    NavOptions.Builder()
+                        .setPopUpTo(findNavController().currentDestination?.id ?: 0, true).build()
+                )
+            } else {
+                Log.d("TAG", "fireBaseAuthWithGoogle: Sign in with credential FAILED")
+                Toast.makeText(context, "${it.exception?.message}", Toast.LENGTH_SHORT).show()
 
-
-    fun loadData() {
-        dataRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                userlist = java.util.ArrayList<MyPerson>()
-                val children = snapshot.children
-                for (child in children) {
-                    val value = child.getValue(MyPerson::class.java)
-                    if (value != null) {
-                        userlist.add(value)
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-    }
-
-    fun loginregisteremail() {
-        val dialogBinding = DialogLoginEmailBinding.inflate(layoutInflater)
-        dialog = AlertDialog.Builder(requireContext()).create()
-        dialog.setView(dialogBinding.root)
-        dialogBinding.apply {
-            registerBtn.setOnClickListener {
-                val email = etEmailLogin.text.toString()
-                val password = etPasswordLogin.text.toString()
-                if (email.isNotEmpty() && password.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            auth.createUserWithEmailAndPassword(email, password)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Succesfully registered",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-
-                        } catch (e: java.lang.Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(requireContext(), e.message, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                        }
-
-                    }
-                }
-            }
-
-            loginBtn.setOnClickListener {
-                val email = etEmailLogin.text.toString()
-                val password = etPasswordLogin.text.toString()
-                if (email.isNotEmpty() && password.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            auth.signInWithEmailAndPassword(email, password)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Succesfully logged in",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                findNavController().navigate(R.id.loginForEmailAndPhonrFragment)
-                            }
-
-                        } catch (e: java.lang.Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(requireContext(), e.message, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                        }
-
-                    }
-                }
             }
         }
-        dialog.show()
 
     }
+
 
 }

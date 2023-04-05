@@ -4,6 +4,8 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import dev.abdujabbor.chatappsimple.databinding.ChatMessageItemBinding
 import dev.abdujabbor.chatappsimple.databinding.ChatincomingmessegeBinding
 import dev.abdujabbor.chatappsimple.models.ChatMessage
@@ -11,7 +13,8 @@ import dev.abdujabbor.chatappsimple.models.MyPerson
 
 class ChatAdapter(
     private val messages: MutableList<ChatMessage>,
-    private val currentUser: MyPerson,var rvClick: Rvclicks
+    private val currentUser: MyPerson,var context: Context,var rvClick: Rvclicks
+
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -59,7 +62,9 @@ class ChatAdapter(
         RecyclerView.ViewHolder(binding.root) {
         fun bind(message: ChatMessage) {
             binding.textViewMessage.text = message.message
-            binding.textViewTime.text = message.senderName
+            binding.textViewTime.text = message.senderName.toString()
+            Glide.with(context).load(message.imageforchat).into(binding.imageviewmessege)
+            Glide.with(context).load(message.imageLink).into(binding.userimage)
             binding.textViewMessage.setOnLongClickListener{
                 rvClick.delete(message)
                 true
@@ -71,7 +76,10 @@ class ChatAdapter(
         RecyclerView.ViewHolder(binding.root) {
         fun bind(message: ChatMessage) {
             binding.text2messege.text = message.message
-            binding.textViewTime.text = message.senderName
+            binding.textViewTime.text = message.senderName.toString()
+            val auth = FirebaseAuth.getInstance().currentUser?.photoUrl
+            Glide.with(context).load(auth).into(binding.userimage)
+            Glide.with(context).load(message.imageforchat).into(binding.imageviewmessege)
             binding.text2messege.setOnLongClickListener{
                 rvClick.delete(message)
                 true
